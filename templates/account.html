@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/account.css">
+    <title>home</title>
+</head>
+<body>
+    <div class="heading">   
+        <h1>Welcome to BVCOE Bank</h1>
+    </div>
+  <section>
+    <div class="card">
+
+        <div class="face front">
+           <div class="text">
+            <p>Please Scan Your Card</p>
+           </div>
+        </div>
+
+        <div class="face back">
+            <div class="cardNo">
+                Enter Your Account Number
+                <br>
+                <form action="{{ url_for('account') }}" method="POST">
+                <input type="number" placeholder="ACCOUNT NUMBER" name="account_number" required ><br>
+                <button type="submit">SUBMIT</button>
+                </form>
+                {% if error %}
+                <p style="color: rgb(255, 255, 255);">{{ error }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+    </section>
+
+</body>
+</html>

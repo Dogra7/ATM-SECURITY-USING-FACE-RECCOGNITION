@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Face</title>
+    <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+    <div class="heading">
+        <h1>ADD NEW FACES</h1>
+    </div>
+
+    <section>
+        <div class="container">
+            <h2>UPLOAD IMAGE :</h2>
+            <form action="/add_face" method="post" enctype="multipart/form-data">
+                <input type="file" name="image" id="image" accept="image/*" required>
+                <br><br>
+                <div class="btn">
+                    <button type="submit">Add Face</button>
+                </div>
+            </form>
+
+            <br><br>
+            
+            <form action="/cancel">
+                <div class="btn">
+                    <button type="home" id="home" name="home">HOME</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</body>
+</html>

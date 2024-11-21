@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Home</title>
+</head>
+<body>
+    <h1>Welcome to Your ATM</h1>
+    {% if customer %}
+        <h2>Hello, {{ customer[0] }}!</h2>
+        <p>Phone Number: {{ customer[1] }}</p>
+        <p>Email: {{ customer[2] }}</p>
+        <p>Account Number: {{ customer[3] }}</p>
+        <p>Bank Name: {{ customer[4] }}</p>
+    {% else %}
+        <p>No customer information available.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,43 @@
+Note: - Using Python 3.11.3
+
+# Install essential utilities and base libraries
+pip install numpy==1.26.4
+pip install certifi==2020.6.20
+pip install chardet==3.0.4
+pip install idna==2.10
+pip install urllib3==1.25.11
+pip install requests==2.24.0
+
+# Install image and video processing libraries
+pip install imageio==2.9.0
+pip install imageio-ffmpeg==0.4.2
+pip install opencv-python==4.9.0.80
+pip install Pillow==10.0.0
+
+# Install Flask and related libraries
+pip install Flask 
+pip install click==8.1.3
+
+# Install CMake and decorator (needed for dlib and face-recognition)
+pip install cmake==3.18.2.post1
+pip install decorator==5.1.1
+
+# Install dlib and face-recognition libraries
+pip install dlib==19.18.0 (better insatll dlib binary from github)
+pip install face-recognition-models==0.3.0
+pip install face-recognition==1.3.0
+
+# Install additional utilities
+pip install moviepy==1.0.3
+pip install proglog==0.1.9
+pip install tqdm==4.51.0
+
+# Install Windows-specific certificate store handling (if needed)
+pip install wincertstore==0.2
+
+
+pip install psycopg2
+
+pip install sqlalchemy
+
+https://github.com/ageitgey/face_recognition/issues/1573	
