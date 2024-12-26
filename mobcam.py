@@ -107,7 +107,7 @@ def video_feed():
 
     def gen_frames(account_name):  # Pass account_name as an argument
         global recognized_face_name
-        ip_camera_url = 'http://192.168.29.78:8080/video'  # Replace with your IP camera URL
+        ip_camera_url = 'http://192.168.1.109:8080/video'  # Replace with your IP camera URL
         video_capture = cv2.VideoCapture(ip_camera_url)
         frame_skip = 2  # Process every third frame
         frame_count = 0 
