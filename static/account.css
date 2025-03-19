@@ -1,15 +1,14 @@
-body{
+body {
     overflow: hidden;
     background-color: #1a1a1a;
-
 }
 
-.heading{
+.heading {
     padding: 10px;
     margin-top: 30px;
     margin-bottom: -50px;
     background-color: #fff;
-    text-align: center  ;
+    text-align: center;
 }
 
 section {
@@ -17,7 +16,6 @@ section {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-
 }
 
 section::before {
@@ -27,7 +25,7 @@ section::before {
     left: 40%;
     height: 600px;
     width: 600px;
-    background: linear-gradient(#f01,#f0f);
+    background: linear-gradient(#f01, #f0f);
     border-radius: 50%;
 }
 
@@ -37,35 +35,45 @@ section::before {
     height: 314px;
     transform-style: preserve-3d;
     perspective: 500px;
-  }
+}
+
 .card .face {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
     border-radius: 15px;
     background: rgba(228, 181, 181, 0.073);
-    backdrop-filter:blur(10px) ;
+    backdrop-filter: blur(10px);
     transform-style: preserve-3d;
     transition: 1s;
-    backface-visibility: hidden; 
-  }
+    backface-visibility: hidden;
+}
 
-  .card:hover .face.front{
+.card .face.front {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card .face.back {
     transform: rotateY(180deg);
-  }
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-  .card .face.back {
+.card:hover .face.front {
     transform: rotateY(180deg);
-  }
+}
 
-  .card:hover .face.back {
+.card:hover .face.back {
     transform: rotateY(360deg);
-  }
+}
 
-  .card .face.front::before {
+.card .face.front::before {
     content: '';
     position: absolute;
     bottom: 40px;
@@ -77,7 +85,7 @@ section::before {
     opacity: 0.5;
 }
 
-    .card .face.front::after {
+.card .face.front::after {
     content: '';
     position: absolute;
     bottom: 40px;
@@ -98,17 +106,17 @@ section::before {
 
 .cardNo {
     position: absolute;
-    top:60px;
+    top: 60px;
     width: 100%;
     height: 130px;
     background: black;
-    color:white;
+    color: white;
     font-size: 30px;
     text-align: center;
     padding-top: 9px;
 }
 
-input{
+input {
     font-size: 20px;
     text-align: center;
 }
@@ -126,5 +134,5 @@ button {
 }
 
 button:hover {
-    background-color:#b02a37;
+    background-color: #b02a37;
 }

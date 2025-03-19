@@ -107,7 +107,7 @@
         <div class="container">
             <h2>Request OTP</h2>
             <form id="requestOtpForm">
-                <input type="email" id="email" placeholder="Your Email Address" required readonly>
+                <input type="tel" id="phone" placeholder="Your Phone Number" required >
                 <button type="submit">Request OTP</button>
             </form>
 
@@ -117,37 +117,37 @@
                 <button type="submit">Verify OTP</button>
             </form>
 
-            <p>For security purposes, please enter the OTP sent to your email to proceed.</p>
+            <p>For security purposes, please enter the OTP sent to your phone number to proceed.</p>
         </div>
     </section>
 
     <script>
-        // Fetch email when the page loads
+        // Fetch phone number when the page loads
         window.onload = function() {
-            fetch('/get_email')
+            fetch('/get_phone')
                 .then(response => response.json())
                 .then(data => {
-                    if (data.email) {
-                        document.getElementById('email').value = data.email;
+                    if (data.phone) {
+                        document.getElementById('phone').value = data.phone;
                     }
                 });
         };
 
         document.getElementById('requestOtpForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
 
             fetch('/request_otp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ email: email })
+                body: JSON.stringify({ phone: phone })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('OTP sent to your email.');
+                    alert('OTP sent to your phone number.');
                 } else {
                     alert('Failed to send OTP. Please try again.');
                 }

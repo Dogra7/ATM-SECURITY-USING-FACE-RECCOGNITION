@@ -9,7 +9,9 @@ from flask_mail import Mail, Message
 from datetime import datetime
 import face_recognition
 import random
-from atm import app_atm
+from atm import app_atm # type: ignore
+from random import randint
+from twilio.rest import Client
 
 
 app = Flask(__name__)
@@ -18,6 +20,8 @@ app.config['UPLOAD_FOLDER'] = 'faces'
 app.config['GRAY_FACE'] = 'face_data'
 app.register_blueprint(app_atm)
 
+# Initialize the global variable to store the latest RFID UID
+latest_uid = None
 
 FACE_DATA_DIR = 'face_data'
 
@@ -34,6 +38,12 @@ app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = 'deepmhatre007@gmail.com'
 app.config['MAIL_PASSWORD'] = 'dkrnkwygcefhmaov'  
 mail = Mail(app)
+
+
+# Twilio credentials
+TWILIO_ACCOUNT_SID = 'AC43a485ebbc68f1351e195f5961d77678'
+TWILIO_AUTH_TOKEN = 'f07662bc6dd419ab25c3108ccba282a6'
+TWILIO_PHONE_NUMBER = '+19898004774'  # Your Twilio phone number
 
 def load_known_faces():
     for filename in os.listdir(app.config['UPLOAD_FOLDER']):
@@ -107,7 +117,7 @@ def video_feed():
 
     def gen_frames(account_name):  # Pass account_name as an argument
         global recognized_face_name
-        ip_camera_url = 'http://192.168.1.109:8080/video'  # Replace with your IP camera URL
+        ip_camera_url = 'http://192.168.8.78:8080/video'  # Replace with your IP camera URL
         video_capture = cv2.VideoCapture(ip_camera_url)
         frame_skip = 2  # Process every third frame
         frame_count = 0 
@@ -170,97 +180,186 @@ def get_recognized_face_name():
     global recognized_face_name
     return jsonify({'recognized_face_name': recognized_face_name})
 
-@app.route('/account', methods=['GET', 'POST'])
-def account():
-    if request.method == 'POST':
-        account_number = request.form['account_number']
+# @app.route('/account', methods=['GET', 'POST'])
+# def account():
+#     if request.method == 'POST':
+#         account_number = request.form['account_number']
         
-        # Validate account number against the database
-        try:
-            connection = get_db_connection()
-            cursor = connection.cursor()
-            query = "SELECT cus_name FROM customer1 WHERE cus_accountno = %s"
-            cursor.execute(query, (account_number,))
-            customer = cursor.fetchone()  # Fetch the customer name associated with the account number
-            cursor.close()
-            connection.close()
+#         # Validate account number against the database
+#         try:
+#             connection = get_db_connection()
+#             cursor = connection.cursor()
+#             query = "SELECT cus_name FROM customer1 WHERE cus_accountno = %s"
+#             cursor.execute(query, (account_number,))
+#             customer = cursor.fetchone()  # Fetch the customer name associated with the account number
+#             cursor.close()
+#             connection.close()
             
-            if customer:
-                session['account_name'] = customer[0]  # Store the customer name in the session
-                session['account_number'] = account_number  # Store the account number in the session
-                return redirect(url_for('webcam'))  # Redirect to face recognition page
-            else:
-                return render_template('account.html', error="Invalid account number. Try again.")
-        except (Exception, Error) as error:
-            print("Error fetching data from PostgreSQL", error)
-            return render_template('account.html', error="Error occurred. Please try again.")
+#             if customer:
+#                 session['account_name'] = customer[0]  # Store the customer name in the session
+#                 session['account_number'] = account_number  # Store the account number in the session
+#                 return redirect(url_for('webcam'))  # Redirect to face recognition page
+#             else:
+#                 return render_template('account.html', error="Invalid account number. Try again.")
+#         except (Exception, Error) as error:
+#             print("Error fetching data from PostgreSQL", error)
+#             return render_template('account.html', error="Error occurred. Please try again.")
     
-    return render_template('account.html')
+#     return render_template('account.html')
 
-def generate_otp():
-    return str(random.randint(100000, 999999))
 
-@app.route('/get_email')
-def get_email():
-    account_number = session.get('account_number')  # Retrieve stored account number
-    email = None
+# Endpoint to update the latest UID (triggered by ESP32 or RFID scanner)
+@app.route('/update_uid', methods=['POST'])
+def update_uid():
+    global latest_uid
+    latest_uid = request.json.get('rfid_uid')  # UID sent as JSON
+    print(f"Updated UID: {latest_uid}")
+    return jsonify({'status': 'success'})
+
+# Endpoint to get the latest UID and corresponding account name
+@app.route('/get_latest_uid', methods=['GET'])
+def get_latest_uid():
+    global latest_uid
+    if latest_uid:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT cus_name, cus_accountno FROM customer1 WHERE rfid_uid = %s', (latest_uid,))
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if result:
+            session['account_name'] = result[0]  # Store account name in session
+            session['account_number'] = result[1]  # Store account number in session
+            session['rfid_uid'] = latest_uid    # Store UID in session
+            response = jsonify({'rfid_uid': latest_uid, 'account_name': result[0], 'redirect': True})
+            latest_uid = None  # Reset the latest UID            
+            return response
+        else:
+            latest_uid = None  # Reset the latest UID                        
+            return jsonify({'rfid_uid': latest_uid, 'account_name': None, 'redirect': False})
+    else:
+        return jsonify({'rfid_uid': None, 'account_name': None, 'redirect': False})
+
+# def generate_otp():
+#     return str(random.randint(100000, 999999))
+
+# @app.route('/get_email')
+# def get_email():
+#     account_number = session.get('account_number')  # Retrieve stored account number
+#     email = None
+#     if account_number:
+#         try:
+#             connection = get_db_connection()
+#             cursor = connection.cursor()
+#             query = "SELECT cus_email FROM customer1 WHERE cus_accountno = %s"
+#             cursor.execute(query, (account_number,))
+#             email_record = cursor.fetchone()
+#             cursor.close()
+#             connection.close()
+#             if email_record:
+#                 email = email_record[0]  # Get the email from the fetched record
+#         except (Exception, Error) as error:
+#             print("Error fetching email from PostgreSQL", error)
+    
+#     return jsonify({'email': email})
+
+
+# # Send OTP Email
+# def send_otp_email(recipient_email, otp):
+#     msg = Message('Your OTP Code for Secure ATM Access', 
+#                   sender=app.config['MAIL_USERNAME'], 
+#                   recipients=[recipient_email])
+    
+#     msg.body = f"""
+# Dear Customer,
+
+# We have received a request to access your ATM account. For added security, please use the One-Time Password (OTP) provided below to complete the verification process.
+
+# Your OTP Code: {otp}
+
+# If you did not request this, please contact our support team immediately.
+
+# Thank you for choosing our secure ATM services.
+
+# Best regards,
+# Your Bank Support Team
+
+# """
+#     mail.send(msg)
+#     return True
+
+# # Flask route to request OTP and send email
+# @app.route('/request_otp', methods=['POST'])
+# def request_otp():
+#     global otp_code, recipient_email
+#     recipient_email = request.json['email']
+#     otp_code = generate_otp()
+#     success = send_otp_email(recipient_email, otp_code)
+#     return jsonify({'success': success})
+
+# # Flask route to verify OTP
+# @app.route('/verify_otp', methods=['POST'])
+# def verify_otp():
+#     entered_otp = request.json['otp']
+#     if entered_otp == otp_code:
+#         account_number = session.get('account_number')  # Retrieve stored account number
+#         return jsonify({'success': True, 'redirect': url_for('home')})  # Redirect to home
+#     return jsonify({'success': False})
+
+# @app.route('/otp')
+# def otp():
+#     return render_template('otp.html')
+
+# Fetch registered phone number from the database
+@app.route('/get_phone')
+def get_phone():
+    account_number = session.get('account_number')
+    phone_number = None
     if account_number:
         try:
             connection = get_db_connection()
             cursor = connection.cursor()
-            query = "SELECT cus_email FROM customer1 WHERE cus_accountno = %s"
+            query = "SELECT cus_phoneno FROM customer1 WHERE cus_accountno = %s"
             cursor.execute(query, (account_number,))
-            email_record = cursor.fetchone()
+            phone_record = cursor.fetchone()
             cursor.close()
             connection.close()
-            if email_record:
-                email = email_record[0]  # Get the email from the fetched record
-        except (Exception, Error) as error:
-            print("Error fetching email from PostgreSQL", error)
-    
-    return jsonify({'email': email})
+            if phone_record:
+                phone_number = phone_record[0]
+        except Exception as error:
+            print("Error fetching phone number from PostgreSQL", error)
+    return jsonify({'phone': phone_number})
 
+# Function to send OTP via Twilio
+def send_otp_sms(recipient_phone, otp):
+    try:
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        message = client.messages.create(
+            body=f"Dear Customer, we have received a request to access your ATM account. For added security, please use the One-Time Password (OTP) provided below to complete the verification process. {otp}",
+            from_=TWILIO_PHONE_NUMBER,
+            to=recipient_phone
+        )
+        return True
+    except Exception as e:
+        print("Error sending OTP via SMS:", e)
+        return False
 
-# Send OTP Email
-def send_otp_email(recipient_email, otp):
-    msg = Message('Your OTP Code for Secure ATM Access', 
-                  sender=app.config['MAIL_USERNAME'], 
-                  recipients=[recipient_email])
-    
-    msg.body = f"""
-Dear Customer,
-
-We have received a request to access your ATM account. For added security, please use the One-Time Password (OTP) provided below to complete the verification process.
-
-Your OTP Code: {otp}
-
-If you did not request this, please contact our support team immediately.
-
-Thank you for choosing our secure ATM services.
-
-Best regards,
-Your Bank Support Team
-
-"""
-    mail.send(msg)
-    return True
-
-# Flask route to request OTP and send email
+# Flask route to request OTP and send SMS
 @app.route('/request_otp', methods=['POST'])
 def request_otp():
-    global otp_code, recipient_email
-    recipient_email = request.json['email']
-    otp_code = generate_otp()
-    success = send_otp_email(recipient_email, otp_code)
+    global otp_code, recipient_phone
+    recipient_phone = request.json['phone']
+    otp_code = randint(100000, 999999)  # Generate 6-digit OTP
+    success = send_otp_sms(recipient_phone, otp_code)
     return jsonify({'success': success})
 
 # Flask route to verify OTP
 @app.route('/verify_otp', methods=['POST'])
 def verify_otp():
     entered_otp = request.json['otp']
-    if entered_otp == otp_code:
-        account_number = session.get('account_number')  # Retrieve stored account number
-        return jsonify({'success': True, 'redirect': url_for('home')})  # Redirect to home
+    if entered_otp == str(otp_code):  # Convert both to string for comparison
+        return jsonify({'success': True, 'redirect': url_for('home')})
     return jsonify({'success': False})
 
 @app.route('/otp')
@@ -295,6 +394,14 @@ def error():
 def webcam():
     return render_template('webcam.html')
 
+@app.route('/fingerprint')
+def fingerprint():
+    return render_template('fingerprint.html')
+
+@app.route('/auth')
+def auth():
+    return render_template('auth.html')
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

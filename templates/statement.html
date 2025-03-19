@@ -3,35 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/home.css">
-    <title>Transaction Statement</title>
+    <title>Account Statement - BVCOE Bank ATM</title>
+    <style>
+        body {
+            overflow: hidden;
+            background-color: #1a1a1a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .heading {
+            padding: 10px;
+            margin-top: 30px;
+            margin-bottom: -50px;
+            background-color: #fff;
+            text-align: center;
+            width: 100%;
+        }
+
+        section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        section::before {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: 40%;
+            height: 600px;
+            width: 600px;
+            background: linear-gradient(#f01, #f0f);
+            border-radius: 50%;
+        }
+
+        .h1h {
+            color: #003366;
+            margin-bottom: 15px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f01;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #b02a37;
+        }
+
+    </style>
 </head>
 <body>
     <div class="heading">
-        <h1>Transaction Statement</h1>
+        <h1>BVCOE Bank ATM</h1>
     </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Transaction</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Balance</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for transaction in transactions %}
-            <tr>
-                <td>{{ transaction[0] }}</td>
-                <td>{{ transaction[1] }}</td>
-                <td>{{ transaction[2] }}</td>
-                <td>${{ transaction[3] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <div>
-        <a href="{{ url_for('home') }}">Back to Home</a>
-    </div>
+    <section>
+        <div class="container">
+            <div class="h1h">
+                <h1>MINI STATEMENT</h1>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Amount</th>
+                        <th>Transaction Type</th>
+                        <th>Balance After Transaction</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transactions in transactions %}
+                    <tr>
+                        <td>Rs.{{ transactions[0] }}</td>
+                        <td>{{ transactions[1] }}</td>
+                        <td>Rs.{{ transactions[2] }}</td>
+                        <td>{{ transactions[3].strftime('%Y-%m-%d') }}</td>
+                        <td>{{ transactions[3].strftime('%H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div>
+                <form action="/home">
+                <button>Back to Home</a>
+                </form>
+            </div>
+        </div>
+    </section>
 </body>
 </html>

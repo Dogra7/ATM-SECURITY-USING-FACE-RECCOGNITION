@@ -9,35 +9,35 @@
 <body>
     <div class="heading">
         <h1>WELCOME TO BVCOE ATM</h1>
-     </div>
-        <div class="wlc">
+    </div>
+    <div class="wlc">
         {% if customer %}
-        <h1>Hello, {{ customer[0] }}!</h1>
-     {% else %}
-        <p>No customer information available.</p>
-     {% endif %}
-     </div>
-     <section>
-     <div class="block">
-         <form action="/balance">
-             <button class="button button1">Balance enquire</button>
-         </form> 
-         <form action="/withdrawl">
-             <button class="button button2">Cash withdrawal</button>
-         </form>
-         <form action="/pinchange">
-             <button class="button button3">Pin Change</button>
-         </form> 
-         <form action="/deposit">
-             <button class="button button4">Cash Deposit</button>
-         </form>
-         <form action="/statement">
-             <button class="button button5">Statement</button>
-         </form>
-         <form action="/cancel">
-             <button class="button button6">Cancel</button>
-         </form>
+            <h1>Hello, {{ customer[0] }}!</h1>
+        {% else %}
+            <p>No customer information available.</p>
+        {% endif %}
+    </div>
+    <section>
+        <div class="block">
+            <form action="{{ url_for('atm.pin_verify', transaction_type='balance') }}" method="post">
+                <button class="button button1">Balance enquire</button>
+            </form>
+            <form action="{{ url_for('atm.pin_verify', transaction_type='withdrawl') }}" method="post">
+                <button class="button button2">Cash withdrawal</button>
+            </form>
+            <form action="/pinchange">
+                <button class="button button3">Pin Change</button>
+            </form>
+            <form action="{{ url_for('atm.pin_verify', transaction_type='deposit') }}" method="post">
+                <button class="button button4">Cash Deposit</button>
+            </form>
+            <form action="{{ url_for('atm.pin_verify', transaction_type='statement') }}" method="post">
+                <button class="button button5">Statement</button>
+            </form>
+            <form action="/cancel">
+                <button class="button button6">Cancel</button>
+            </form>
         </div>
-   </section>
+    </section>
 </body>
 </html>

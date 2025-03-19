@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/account.css">
     <title>home</title>
+    <script>
+        // Poll the server for the latest UID and account name
+        function pollForRFIDData() {
+            setInterval(() => {
+                fetch('/get_latest_uid')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.rfid_uid) {
+                            document.getElementById('rfidUID').value = data.rfid_uid;
+                            document.getElementById('account_name').value = data.account_name || "Not Found";
+                            
+                            // Redirect if a valid account is found
+                            if (data.redirect) {
+                                window.location.href = '/auth';
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }, 3000); // Poll every 2 seconds
+        }
+
+        document.addEventListener('DOMContentLoaded', pollForRFIDData);
+    </script>
 </head>
 <body>
     <div class="heading">   
@@ -17,22 +40,12 @@
            <div class="text">
             <p>Please Scan Your Card</p>
            </div>
+           <form>
+            <input type="text" id="rfidUID" placeholder="RFID UID will appear here" readonly  />
+            <br>
+            <input type="text" id="account_name" placeholder="Account name will appear here" readonly hidden />
+        </form>
         </div>
-
-        <div class="face back">
-            <div class="cardNo">
-                Enter Your Account Number
-                <br>
-                <form action="{{ url_for('account') }}" method="POST">
-                <input type="number" placeholder="ACCOUNT NUMBER" name="account_number" required ><br>
-                <button type="submit">SUBMIT</button>
-                </form>
-                {% if error %}
-                <p style="color: rgb(255, 255, 255);">{{ error }}</p>
-                {% endif %}
-            </div>
-        </div>
-
     </div>
     </section>
 
