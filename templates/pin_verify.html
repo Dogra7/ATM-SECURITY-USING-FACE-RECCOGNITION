@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fingerprint Scanning - BVCOE Bank ATM</title>
+    <title>Pin Verify</title>
     <style>
         body {
             overflow: hidden;
@@ -44,11 +44,6 @@
             border-radius: 50%;
         }
 
-        .h1h{
-            color: #003366;
-            margin-bottom: 15px;
-        }
-
         .container {
             background-color: white;
             padding: 30px;
@@ -64,68 +59,63 @@
         form {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 18px;
+            color: #003366;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 100%;
         }
 
         button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            background-color: #f01;
+            background-color: #007bff;
             color: white;
-            font-size: 1em;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
 
         button:hover {
-            background-color: #b02a37;
+            background-color: #0056b3;
         }
 
+        p {
+            color: red; /* or any other color you want for error messages */
+            margin-top: 10px;
+        }
     </style>
-    <script>
-        function pollForFingerprintData() {
-            setInterval(() => {
-                fetch('/get_latest_fuid')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.fingerprint_uid) {
-                            // alert("Fingerprint Matched! Redirecting...");
-                            window.location.href = '/home';
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            }, 2000); // Poll every 2 seconds
-        }
-
-        document.addEventListener('DOMContentLoaded', pollForFingerprintData);
-
-        // document.getElementById('otp_button').addEventListener('click', function() {
-        //     // Redirect to the OTP page
-        //     window.location.href = "{{ url_for('otp') }}";
-        // });
-    </script>
 </head>
 <body>
     <div class="heading">
-        <h1>BVCOE Bank ATM</h1>
+        <h2>Enter Your PIN</h2>
     </div>
+
     <section>
         <div class="container">
-            <div class="h1h">
-                <h1>Please Scan Your Fingerprint</h1>
-            </div>
-            <img src="/static/fing.jpg" alt="Fingerprint" width="200" height="200">
-            <button id="otp_button" >SEND OTP</button>
+            <form method="POST">
+                <label for="e_pin">PIN:</label>
+                <input type="password" id="e_pin" name="e_pin" required><br>
+                <button type="submit">Verify</button>
+            </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         </div>
     </section>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('otp_button').addEventListener('click', function() {
-                window.location.href = "{{ url_for('otp') }}";
-            });
-        });
-    </script>
 </body>
 </html>

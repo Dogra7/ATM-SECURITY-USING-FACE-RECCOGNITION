@@ -12,6 +12,7 @@ import random
 from atm import app_atm # type: ignore
 from random import randint
 from twilio.rest import Client
+from datetime import datetime, timedelta
 
 
 app = Flask(__name__)
@@ -22,6 +23,9 @@ app.register_blueprint(app_atm)
 
 # Initialize the global variable to store the latest RFID UID
 latest_uid = None
+
+otp_code = None
+otp_generated_time = None 
 
 FACE_DATA_DIR = 'face_data'
 
@@ -117,7 +121,7 @@ def video_feed():
 
     def gen_frames(account_name):  # Pass account_name as an argument
         global recognized_face_name
-        ip_camera_url = 'http://192.168.8.78:8080/video'  # Replace with your IP camera URL
+        ip_camera_url = 'http://192.168.219.78:8080/video'  # Replace with your IP camera URL
         video_capture = cv2.VideoCapture(ip_camera_url)
         frame_skip = 2  # Process every third frame
         frame_count = 0 
@@ -211,10 +215,38 @@ def get_recognized_face_name():
 # Endpoint to update the latest UID (triggered by ESP32 or RFID scanner)
 @app.route('/update_uid', methods=['POST'])
 def update_uid():
+    global fingerprint_uid
     global latest_uid
+    fingerprint_uid = request.json.get('fingerprint_uid')  # UID sent as JSON
+    print(f"Updated FUID: {fingerprint_uid}")
     latest_uid = request.json.get('rfid_uid')  # UID sent as JSON
     print(f"Updated UID: {latest_uid}")
     return jsonify({'status': 'success'})
+
+# Endpoint to get the latest UID and corresponding account name
+@app.route('/get_latest_fuid', methods=['GET'])
+def get_latest_fuid():
+    global fingerprint_uid
+    if fingerprint_uid:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT cus_name FROM customer1 WHERE finger_uid = %s', (fingerprint_uid,))
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if result:
+            account_name = result[0]
+            session['account_name'] = account_name  # Store account name in session
+            session['fingerprint_uid'] = fingerprint_uid        # Store UID in session
+            fingerprint_uid = None  # Clear the UID after processing
+            return jsonify({'fingerprint_uid': session['fingerprint_uid'], 'account_name': account_name, 'redirect': True})
+        else:
+            # latest_uid = None  # Clear the UID even if no match is found
+            return jsonify({'fingerprint_uid': None, 'account_name': None, 'redirect': False})
+    else:
+        return jsonify({'fingerprint_uid': None, 'account_name': None, 'redirect': False})
+    
 
 # Endpoint to get the latest UID and corresponding account name
 @app.route('/get_latest_uid', methods=['GET'])
@@ -240,6 +272,7 @@ def get_latest_uid():
             return jsonify({'rfid_uid': latest_uid, 'account_name': None, 'redirect': False})
     else:
         return jsonify({'rfid_uid': None, 'account_name': None, 'redirect': False})
+
 
 # def generate_otp():
 #     return str(random.randint(100000, 999999))
@@ -348,19 +381,33 @@ def send_otp_sms(recipient_phone, otp):
 # Flask route to request OTP and send SMS
 @app.route('/request_otp', methods=['POST'])
 def request_otp():
-    global otp_code, recipient_phone
+    global otp_code, recipient_phone, otp_timestamp
     recipient_phone = request.json['phone']
-    otp_code = randint(100000, 999999)  # Generate 6-digit OTP
+    otp_code = randint(100000, 999999)
+    otp_timestamp = datetime.now()  # Record OTP creation time
     success = send_otp_sms(recipient_phone, otp_code)
     return jsonify({'success': success})
 
-# Flask route to verify OTP
 @app.route('/verify_otp', methods=['POST'])
 def verify_otp():
+    global otp_code, otp_timestamp
+
     entered_otp = request.json['otp']
-    if entered_otp == str(otp_code):  # Convert both to string for comparison
+
+    # Check if OTP exists and is not expired (e.g., 2 minutes)
+    if not otp_code or not otp_timestamp:
+        return jsonify({'success': False, 'error': 'OTP not requested'})
+
+    if datetime.now() - otp_timestamp > timedelta(minutes=2):
+        otp_code = None  # Clear expired OTP
+        return jsonify({'success': False, 'error': 'OTP expired'})
+
+    if entered_otp == str(otp_code):
+        otp_code = None  # Clear OTP after successful verification
         return jsonify({'success': True, 'redirect': url_for('home')})
+
     return jsonify({'success': False})
+
 
 @app.route('/otp')
 def otp():
