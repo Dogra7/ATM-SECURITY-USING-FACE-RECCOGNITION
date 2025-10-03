@@ -23,7 +23,39 @@
                         }
                     })
                     .catch(error => console.error('Error:', error));
-            }, 3000); // Poll every 2 seconds
+            }, 3000); // Poll every 3 seconds
+        }
+
+        // Function to submit manual UID
+        function submitManualUID() {
+            const uid = document.getElementById('manualUID').value.trim();
+            if (!uid) {
+                alert('Please enter a UID');
+                return;
+            }
+
+            fetch('/update_uid', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ rfid_uid: uid })
+            })
+            .then(() => fetch('/get_latest_uid'))
+            .then(r => r.json())
+            .then(data => {
+                if (data.rfid_uid) {
+                    document.getElementById('rfidUID').value = data.rfid_uid;
+                    document.getElementById('account_name').value = data.account_name || "Not Found";
+                }
+                if (data.redirect) {
+                    window.location.href = '/auth';
+                } else {
+                    alert('No account found for this UID');
+                }
+            })
+            .catch(err => {
+                console.error('Manual UID error:', err);
+                alert('Error sending UID to server.');
+            });
         }
 
         document.addEventListener('DOMContentLoaded', pollForRFIDData);
@@ -33,21 +65,32 @@
     <div class="heading">   
         <h1>Welcome to BVCOE Bank</h1>
     </div>
-  <section>
-    <div class="card">
-
-        <div class="face front">
-           <div class="text">
-            <p>Please Scan Your Card</p>
-           </div>
-           <form>
-            <input type="text" id="rfidUID" placeholder="RFID UID will appear here" readonly  hidden/>
-            <br>
-            <input type="text" id="account_name" placeholder="Account name will appear here" readonly hidden />
-        </form>
-        </div>
+<section>
+  <div class="card">
+    <!-- Front Face -->
+    <div class="face front">
+      <div class="text">
+        <p>Please Scan Your Card</p>
+      </div>
+      <!-- Existing read-only fields if needed on front -->
+      <form>
+        <input type="text" id="rfidUID" placeholder="RFID UID will appear here" readonly hidden/>
+        <input type="text" id="account_name" placeholder="Account name will appear here" readonly hidden/>
+      </form>
     </div>
-    </section>
+
+    <!-- Back Face -->
+    <div class="face back">
+      <div class="text">
+        <p>Manual UID Entry</p>
+      </div>
+      <form>
+        <input type="text" id="manualUID" placeholder="Type UID here to simulate" />
+        <button type="button" onclick="submitManualUID()">Submit UID</button>
+      </form>
+    </div>
+  </div>
+</section>
 
 </body>
 </html>

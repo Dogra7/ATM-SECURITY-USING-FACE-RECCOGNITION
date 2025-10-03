@@ -46,7 +46,7 @@ def detect_spoof(gray_frame):
         # 1. Calculate LBP (using scikit-image)
         radius = 1  # Adjust radius as needed
         n_points = 8 * radius  # Number of neighbors
-        lbp = local_binary_pattern(gray_frame, n_points, radius, method="uniform")  # "uniform" is often a good choice
+        lbp = local_binary_pattern(gray_frame, n_points, radius, method="uniform")  # type: ignore # "uniform" is often a good choice
 
         # 2. Extract Histogram Features
         hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, n_points + 2), range=(0, n_points + 1)) # Bins according to the LBP type

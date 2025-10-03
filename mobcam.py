@@ -47,7 +47,7 @@ mail = Mail(app)
 # Twilio credentials
 TWILIO_ACCOUNT_SID = 'AC43a485ebbc68f1351e195f5961d77678'
 TWILIO_AUTH_TOKEN = 'f07662bc6dd419ab25c3108ccba282a6'
-TWILIO_PHONE_NUMBER = '+19898004774'  # Your Twilio phone number
+TWILIO_PHONE_NUMBER = '+12242074211'  # Your Twilio phone number
 
 def load_known_faces():
     for filename in os.listdir(app.config['UPLOAD_FOLDER']):
@@ -121,7 +121,7 @@ def video_feed():
 
     def gen_frames(account_name):  # Pass account_name as an argument
         global recognized_face_name
-        ip_camera_url = 'http://192.168.219.78:8080/video'  # Replace with your IP camera URL
+        ip_camera_url = 'http://192.168.100.2:8080/video'  # Replace with your IP camera URL
         video_capture = cv2.VideoCapture(ip_camera_url)
         frame_skip = 2  # Process every third frame
         frame_count = 0 
